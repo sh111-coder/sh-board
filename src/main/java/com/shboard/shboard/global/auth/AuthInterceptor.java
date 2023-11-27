@@ -1,9 +1,6 @@
 package com.shboard.shboard.global.auth;
 
-import java.util.Arrays;
-
-import com.shboard.shboard.session.domain.MemberSessionRepository;
-import jakarta.servlet.http.Cookie;
+import com.shboard.shboard.global.session.domain.MemberSessionRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,35 +13,18 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
 
-    private static final String SESSION_KEY = "JSESSIONID";
+    private final CookieManager cookieManager;
 
     private final MemberSessionRepository memberSessionRepository;
 
     @Override
     public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler) throws Exception {
-        final Cookie[] cookies = request.getCookies();
-
-        final Cookie sessionCookie = getSessionFromCookie(cookies);
-        if (!memberSessionRepository.existsBySessionId(sessionCookie.getValue())) {
+        final String sessionId = cookieManager.getSessionId(request);
+        if (!memberSessionRepository.existsBySessionId(sessionId)) {
             log.warn("Session Key exists, but Session ID is not exists");
             throw new AuthException.FailAuthenticationMemberException();
         }
 
         return true;
-    }
-
-    private Cookie getSessionFromCookie(final Cookie[] cookies) {
-        if (cookies == null) {
-            log.warn("Session Key Not Exists");
-            throw new AuthException.FailAuthenticationMemberException();
-        }
-
-        return Arrays.stream(cookies)
-                .filter(cookie -> cookie.getName().equals(SESSION_KEY))
-                .findFirst()
-                .orElseGet(() -> {
-                    log.warn("Session Key Not Exists");
-                    throw new AuthException.FailAuthenticationMemberException();
-                });
     }
 }
