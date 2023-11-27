@@ -30,4 +30,11 @@ public class MemberException extends RuntimeException {
                     minLength, maxLength, wrongLength));
         }
     }
+
+    public static class FailLoginException extends MemberException {
+
+        public FailLoginException() {
+            super("잘못된 회원 정보를 입력하여 로그인에 실패했습니다.");
+        }
+    }
 }
