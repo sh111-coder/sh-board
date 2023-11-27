@@ -28,7 +28,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {
             MemberException.WrongLengthLoginIdException.class,
             MemberException.WrongPatternPasswordException.class,
-            MemberException.WrongLengthNicknameException.class
+            MemberException.WrongLengthNicknameException.class,
+            MemberException.FailLoginException.class
     })
     public ResponseEntity<ErrorResponse> handleCustomBadRequestException(final RuntimeException exception) {
         final String errorMessage = exception.getMessage();

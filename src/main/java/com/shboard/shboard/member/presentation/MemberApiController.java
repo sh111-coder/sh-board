@@ -3,7 +3,12 @@ package com.shboard.shboard.member.presentation;
 import java.net.URI;
 
 import com.shboard.shboard.member.application.MemberService;
+import com.shboard.shboard.member.application.dto.MemberLoginRequest;
 import com.shboard.shboard.member.application.dto.MemberRegisterRequest;
+import com.shboard.shboard.session.application.SessionService;
+import com.shboard.shboard.session.application.dto.SessionCreateRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class MemberApiController {
 
     private final MemberService memberService;
+    private final SessionService sessionService;
 
     @PostMapping("/register")
     private ResponseEntity<Void> register(@RequestBody @Valid final MemberRegisterRequest request) {
@@ -25,5 +31,16 @@ public class MemberApiController {
         return ResponseEntity
                 .created(URI.create("/members/" + registeredId))
                 .build();
+    }
+
+    @PostMapping("/login")
+    private ResponseEntity<Void> login(@RequestBody final MemberLoginRequest request, final HttpServletRequest httpRequest) {
+        final String memberLoginId = memberService.login(request);
+
+        final HttpSession session = httpRequest.getSession();
+        final SessionCreateRequest sessionCreateRequest = new SessionCreateRequest(session.getId(), memberLoginId);
+        sessionService.create(sessionCreateRequest);
+
+        return ResponseEntity.ok().build();
     }
 }
