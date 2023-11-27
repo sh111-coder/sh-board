@@ -11,4 +11,8 @@ public class MemberWebController {
         return "register";
     }
 
+    @GetMapping("/login")
+    public String login() {
+        return "login";
+    }
 }
