@@ -1,4 +1,4 @@
-package com.shboard.shboard.session.domain;
+package com.shboard.shboard.global.session.domain;
 
 import java.time.LocalDateTime;
 

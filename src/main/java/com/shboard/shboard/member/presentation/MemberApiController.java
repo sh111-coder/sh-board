@@ -2,11 +2,11 @@ package com.shboard.shboard.member.presentation;
 
 import java.net.URI;
 
+import com.shboard.shboard.global.session.application.SessionService;
+import com.shboard.shboard.global.session.application.dto.SessionCreateRequest;
 import com.shboard.shboard.member.application.MemberService;
 import com.shboard.shboard.member.application.dto.MemberLoginRequest;
 import com.shboard.shboard.member.application.dto.MemberRegisterRequest;
-import com.shboard.shboard.session.application.SessionService;
-import com.shboard.shboard.session.application.dto.SessionCreateRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;

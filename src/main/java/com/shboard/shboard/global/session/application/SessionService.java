@@ -1,8 +1,8 @@
-package com.shboard.shboard.session.application;
+package com.shboard.shboard.global.session.application;
 
-import com.shboard.shboard.session.application.dto.SessionCreateRequest;
-import com.shboard.shboard.session.domain.MemberSession;
-import com.shboard.shboard.session.domain.MemberSessionRepository;
+import com.shboard.shboard.global.session.application.dto.SessionCreateRequest;
+import com.shboard.shboard.global.session.domain.MemberSession;
+import com.shboard.shboard.global.session.domain.MemberSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
