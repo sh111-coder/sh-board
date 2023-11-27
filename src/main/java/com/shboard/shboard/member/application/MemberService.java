@@ -4,9 +4,11 @@ import com.shboard.shboard.member.application.dto.MemberRegisterRequest;
 import com.shboard.shboard.member.domain.Member;
 import com.shboard.shboard.member.domain.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -22,6 +24,8 @@ public class MemberService {
                 .build();
 
         final Member savedMember = memberRepository.save(member);
+
+        log.info("Member Register Success! member Id = {}", savedMember.getId());
         return savedMember.getId();
     }
 }
