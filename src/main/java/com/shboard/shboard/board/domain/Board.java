@@ -32,4 +32,8 @@ public class Board extends BaseEntity {
         this.content = content;
         this.viewCount = 1L;
     }
+
+    public String getWriterNickname() {
+        return writer.getNickname().getNickname();
+    }
 }
