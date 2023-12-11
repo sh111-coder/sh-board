@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 
 class BoardServiceTest extends ServiceTest {
 
@@ -31,6 +33,8 @@ class BoardServiceTest extends ServiceTest {
     @Autowired
     private BoardService boardService;
 
+    @Value("${spring.data.web.pageable.default-page-size}")
+    private int defaultPageSize;
 
     @Nested
     @DisplayName("게시판 페이지 조회 시")
@@ -55,27 +59,23 @@ class BoardServiceTest extends ServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(ints = {1, 2, 3})
+        @ValueSource(ints = {0, 1, 2})
         @DisplayName("페이지 조회에 성공한다.")
         void success(final int pageNumber) {
             // given
-            int expectedTotalPageNumber = 0;
-            if (totalPostCount % pageSize == 0) {
-                expectedTotalPageNumber = totalPostCount / pageSize;
-            } else {
-                expectedTotalPageNumber = (totalPostCount / pageSize) + 1;
-            }
+            int expectedTotalPageNumber =
+                    totalPostCount % pageSize == 0 ? totalPostCount / pageSize : (totalPostCount / pageSize) + 1;
 
             // when
-            final BoardsResponse boardsResponse = boardService.readByPage(pageNumber, pageSize);
+            final BoardsResponse boardsResponse = boardService.readByPage(PageRequest.of(pageNumber, pageSize));
             final List<BoardListResponse> boardListResponses = boardsResponse.boardListResponses();
             final BoardPageResponse boardPageResponse = boardsResponse.boardPageResponse();
 
             // then
             final int finalExpectedTotalPageNumber = expectedTotalPageNumber;
             assertSoftly(softly -> {
-                softly.assertThat(boardListResponses.get(0).id()).isEqualTo((totalPostCount - ((pageNumber - 1) * pageSize)));
-                softly.assertThat(boardPageResponse.currentPageNumber()).isEqualTo(pageNumber);
+                softly.assertThat(boardListResponses.get(0).id()).isEqualTo((totalPostCount - ((pageNumber) * pageSize)));
+                softly.assertThat(boardPageResponse.currentPageNumber()).isEqualTo(pageNumber + 1);
                 softly.assertThat(boardPageResponse.totalPageNumber()).isEqualTo(finalExpectedTotalPageNumber);
             });
         }
@@ -89,7 +89,7 @@ class BoardServiceTest extends ServiceTest {
             boardRepository.deleteAllInBatch();
 
             // when
-            final BoardsResponse boardsResponse = boardService.readByPage(1, 3);
+            final BoardsResponse boardsResponse = boardService.readByPage(PageRequest.of(0, pageSize));
             final List<BoardListResponse> boardListResponses = boardsResponse.boardListResponses();
             final BoardPageResponse boardPageResponse = boardsResponse.boardPageResponse();
 

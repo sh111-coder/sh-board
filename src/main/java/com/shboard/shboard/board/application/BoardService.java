@@ -5,7 +5,6 @@ import com.shboard.shboard.board.domain.Board;
 import com.shboard.shboard.board.domain.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,8 +17,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
 
     @Transactional(readOnly = true)
-    public BoardsResponse readByPage(final int pageNumber, final int pageSize) {
-        final Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+    public BoardsResponse readByPage(final Pageable pageable) {
         final Page<Board> boardPage = boardRepository.findAllByOrderByCreatedAtDesc(pageable);
 
         return BoardsResponse.of(boardPage, pageable);
