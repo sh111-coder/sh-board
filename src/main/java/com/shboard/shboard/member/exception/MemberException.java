@@ -37,4 +37,11 @@ public class MemberException extends RuntimeException {
             super("잘못된 회원 정보를 입력하여 로그인에 실패했습니다.");
         }
     }
+
+    public static class NotFoundMemberException extends MemberException {
+
+        public NotFoundMemberException() {
+            super("해당 멤버의 ID가 존재하지 않습니다.");
+        }
+    }
 }
