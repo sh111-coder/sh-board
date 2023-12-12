@@ -1,7 +1,6 @@
 package com.shboard.shboard.board.application;
 
 import com.shboard.shboard.board.application.dto.BoardsResponse;
-import com.shboard.shboard.board.application.dto.ClientBoardSearchCondition;
 import com.shboard.shboard.board.domain.Board;
 import com.shboard.shboard.board.domain.BoardRepository;
 import com.shboard.shboard.board.domain.dto.BoardSearchCondition;
@@ -26,9 +25,9 @@ public class BoardService {
     }
 
     @Transactional(readOnly = true)
-    public BoardsResponse searchByCondition(final ClientBoardSearchCondition condition, final Pageable pageable) {
-        final BoardSearchCondition conditionForRepo = new BoardSearchCondition(condition.title(), condition.writer());
-        final Page<Board> searchBoards = boardRepository.searchByCondition(conditionForRepo, pageable);
+    public BoardsResponse searchByCondition(final String title, final String writer, final Pageable pageable) {
+        final BoardSearchCondition condition = new BoardSearchCondition(title, writer);
+        final Page<Board> searchBoards = boardRepository.searchByCondition(condition, pageable);
 
         return BoardsResponse.of(searchBoards, pageable);
     }
