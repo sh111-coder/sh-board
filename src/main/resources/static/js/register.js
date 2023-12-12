@@ -17,7 +17,7 @@ const registerMember = (member) => {
     const jsonData = JSON.stringify(member);
 
     axios.request({
-        url: '/members/register',
+        url: '/api/members/register',
         method: 'post',
         headers: {
             'Content-Type': 'application/json',
