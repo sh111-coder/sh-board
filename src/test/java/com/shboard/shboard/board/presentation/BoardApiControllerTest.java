@@ -16,6 +16,7 @@ import com.shboard.shboard.member.common.AcceptanceTest;
 import com.shboard.shboard.member.domain.Member;
 import com.shboard.shboard.member.domain.MemberRepository;
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.BeforeEach;
@@ -238,6 +239,95 @@ class BoardApiControllerTest extends AcceptanceTest {
         }
     }
 
+    @Nested
+    @DisplayName("게시글 상세 조회 시")
+    class ReadDetail {
+
+        private final String loginId = "sh111";
+        private final String password = "password1!";
+        private final String nickname = "성하";
+
+        @BeforeEach
+        void setUp() {
+            registerRequest(new MemberRegisterRequest(loginId, password, nickname));
+            final ExtractableResponse<Response> response =
+                    loginRequest(new MemberLoginRequest(loginId, password));
+            sessionId = response.cookie("JSESSIONID");
+        }
+
+        @Test
+        @DisplayName("게시글 상세 조회에 성공한다.")
+        void success() {
+            // given
+            final String title = "title1";
+            final String content = "content1";
+            final BoardWriteRequest request = new BoardWriteRequest(title, content);
+            writeBoardRequest(request, sessionId);
+            final long boardId = 1L;
+
+            // when
+            final ExtractableResponse<Response> response = readDetailRequest(boardId, sessionId);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+                softly.assertThat(response.jsonPath().getLong("id")).isEqualTo(boardId);
+                softly.assertThat(response.jsonPath().getString("title")).isEqualTo(title);
+                softly.assertThat(response.jsonPath().getString("content")).isEqualTo(content);
+                softly.assertThat(response.jsonPath().getString("writerNickname")).isEqualTo(nickname);
+            });
+        }
+
+        @Test
+        @DisplayName("쿠키에 세션이 존재하지 않으면 작성에 실패한다.")
+        void fail_not_exist_session_in_cookie() {
+            // when
+            final ExtractableResponse<Response> response = readDetailNotExistSessionRequest(1L);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+                softly.assertThat(response.body().asString()).contains("인증되지 않은 사용자의 접근입니다.");
+            });
+        }
+
+        @Test
+        @DisplayName("쿠키에 해당하는 세션이 존재하지 않으면 작성에 실패한다.")
+        void fail_not_found_session() {
+            // given
+            final String notExistSessionId = "notExistSessionId";
+
+            // when
+            final ExtractableResponse<Response> response = readDetailRequest(1L, notExistSessionId);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+                softly.assertThat(response.body().asString()).contains("인증되지 않은 사용자의 접근입니다.");
+            });
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 게시글 ID로 조회 시 조회에 실패한다.")
+        void fail_not_found_board_id() {
+            // given
+            final String title = "title1";
+            final String content = "content1";
+            final BoardWriteRequest request = new BoardWriteRequest(title, content);
+            writeBoardRequest(request, sessionId);
+            final long notExistBoardId = -1L;
+
+            // when
+            final ExtractableResponse<Response> response = readDetailRequest(notExistBoardId, sessionId);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(response.statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                softly.assertThat(response.body().asString()).contains("해당하는 게시글을 찾을 수 없습니다.");
+            });
+        }
+    }
+
     private ExtractableResponse<Response> registerRequest(final MemberRegisterRequest request) {
         return RestAssured.given().log().all()
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -261,6 +351,7 @@ class BoardApiControllerTest extends AcceptanceTest {
     private ExtractableResponse<Response> writeBoardRequest(final BoardWriteRequest request, final String sessionId) {
         return RestAssured.given().log().all()
                 .body(request)
+                .contentType(ContentType.JSON)
                 .sessionId(sessionId)
                 .when().log().all()
                 .post("/api/boards")
@@ -294,6 +385,23 @@ class BoardApiControllerTest extends AcceptanceTest {
                 .param("size", size)
                 .when().log().all()
                 .get("/api/boards")
+                .then().log().all()
+                .extract();
+    }
+
+    private ExtractableResponse<Response> readDetailRequest(final Long boardId, final String sessionId) {
+        return RestAssured.given().log().all()
+                .sessionId(sessionId)
+                .when().log().all()
+                .get("/api/boards/" + boardId)
+                .then().log().all()
+                .extract();
+    }
+
+    private ExtractableResponse<Response> readDetailNotExistSessionRequest(final Long boardId) {
+        return RestAssured.given().log().all()
+                .when().log().all()
+                .get("/api/boards/" + boardId)
                 .then().log().all()
                 .extract();
     }

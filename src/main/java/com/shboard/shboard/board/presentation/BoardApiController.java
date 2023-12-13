@@ -3,6 +3,7 @@ package com.shboard.shboard.board.presentation;
 import java.net.URI;
 
 import com.shboard.shboard.board.application.BoardService;
+import com.shboard.shboard.board.application.dto.BoardDetailResponse;
 import com.shboard.shboard.board.application.dto.BoardWriteRequest;
 import com.shboard.shboard.board.application.dto.BoardsResponse;
 import com.shboard.shboard.global.auth.AuthMember;
@@ -30,6 +31,12 @@ public class BoardApiController {
     private ResponseEntity<BoardsResponse> readByPage(final Pageable pageable) {
         final BoardsResponse boardsResponse = boardService.readByPage(pageable);
         return ResponseEntity.ok(boardsResponse);
+    }
+
+    @GetMapping("/{boardId}")
+    private ResponseEntity<BoardDetailResponse> readDetail(@PathVariable Long boardId) {
+        final BoardDetailResponse response = boardService.readDetail(boardId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/search")

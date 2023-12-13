@@ -3,6 +3,7 @@ package com.shboard.shboard.global.exception;
 
 import java.util.Random;
 
+import com.shboard.shboard.board.exception.BoardException;
 import com.shboard.shboard.global.auth.AuthException;
 import com.shboard.shboard.member.exception.MemberException;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = {
-            MemberException.NotFoundMemberException.class
+            MemberException.NotFoundMemberException.class,
+            BoardException.NotFoundBoardException.class
     })
     public ResponseEntity<ErrorResponse> handleCustomNotFoundException(final RuntimeException exception) {
         final String errorMessage = exception.getMessage();
