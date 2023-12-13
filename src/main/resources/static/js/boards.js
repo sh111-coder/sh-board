@@ -47,26 +47,6 @@ const getPage = (page) => {
     });
 }
 
-// const search = (option, searchInput) => {
-//     if (option === '제목') {
-//         axios.request({
-//             url: '/api/boards/search?title=' + searchInput,
-//             method: 'get',
-//         }).then((response) => {
-//
-//         }
-//     }
-//
-//     if (option === '작성자') {
-//         axios.request({
-//             url: '/api/boards/search?writer=' + searchInput,
-//             method: 'get',
-//         }).then((response) => {
-//
-//         }
-//     }
-// }
-
 document.addEventListener("DOMContentLoaded", getPage(0));
 
 const getSearchPage = (page) => {

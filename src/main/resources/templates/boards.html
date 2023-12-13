@@ -17,7 +17,7 @@
 </head>
 <body>
 <div class="container mt-4">
-    <h1>게시물 목록</h1>
+    <h1 th:onclick="|location.href='@{/boards}'|">게시물 목록</h1>
     <div class="row justify-content-end">
         <div class="col-auto">
             <!-- 검색 아이콘과 입력 창 -->
@@ -36,7 +36,7 @@
             </div>
         </div>
         <div class="col-auto">
-            <button class="btn btn-primary">글 작성</button>
+            <button class="btn btn-primary" th:onclick="|location.href='@{/board-form}'|">글 작성</button>
         </div>
     </div>
     <table class="table">

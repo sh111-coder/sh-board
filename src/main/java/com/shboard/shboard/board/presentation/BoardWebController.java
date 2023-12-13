@@ -10,4 +10,9 @@ public class BoardWebController {
     public String boards() {
         return "boards";
     }
+
+    @GetMapping("/board-form")
+    public String writeBoardForm() {
+        return "write-board-form";
+    }
 }
