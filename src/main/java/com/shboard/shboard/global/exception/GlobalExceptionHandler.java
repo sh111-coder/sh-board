@@ -49,6 +49,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ErrorResponse(errorMessage));
     }
 
+    @ExceptionHandler(value = {
+            MemberException.NotFoundMemberException.class
+    })
+    public ResponseEntity<ErrorResponse> handleCustomNotFoundException(final RuntimeException exception) {
+        final String errorMessage = exception.getMessage();
+        log.warn(errorMessage);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(new ErrorResponse(errorMessage));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(final RuntimeException exception) {
         final String errorKey = generateRandomKey();

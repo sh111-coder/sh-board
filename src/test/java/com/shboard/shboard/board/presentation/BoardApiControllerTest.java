@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.shboard.shboard.board.application.dto.BoardListResponse;
 import com.shboard.shboard.board.application.dto.BoardPageResponse;
+import com.shboard.shboard.board.application.dto.BoardWriteRequest;
 import com.shboard.shboard.board.application.dto.BoardsResponse;
 import com.shboard.shboard.board.domain.Board;
 import com.shboard.shboard.board.domain.BoardRepository;
@@ -38,6 +39,97 @@ class BoardApiControllerTest extends AcceptanceTest {
     private String sessionId;
 
     @Nested
+    @DisplayName("게시글 작성 시")
+    class WriteBoard {
+
+        private final String loginId = "sh111";
+        private final String password = "password1!";
+        private final String nickname = "성하";
+
+        @BeforeEach
+        void setUp() {
+            registerRequest(new MemberRegisterRequest(loginId, password, nickname));
+            final ExtractableResponse<Response> response =
+                    loginRequest(new MemberLoginRequest(loginId, password));
+            sessionId = response.cookie("JSESSIONID");
+        }
+
+        @Test
+        @DisplayName("쿠키에 세션이 존재하지 않으면 작성에 실패한다.")
+        void fail_not_exist_session_in_cookie() {
+            // given
+            final String title = "title1";
+            final String content = "content1";
+            final BoardWriteRequest request = new BoardWriteRequest(title, content);
+
+            // when
+            final ExtractableResponse<Response> response = writeBoardNotExistSessionRequest(request);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+                softly.assertThat(response.body().asString()).contains("인증되지 않은 사용자의 접근입니다.");
+            });
+        }
+
+        @Test
+        @DisplayName("쿠키에 해당하는 세션이 존재하지 않으면 작성에 실패한다.")
+        void fail_not_found_session() {
+            // given
+            final String title = "title1";
+            final String content = "content1";
+            final BoardWriteRequest request = new BoardWriteRequest(title, content);
+            final String notExistSessionId = "notExistSessionId";
+
+            // when
+            final ExtractableResponse<Response> response = writeBoardRequest(request, notExistSessionId);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(response.statusCode()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+                softly.assertThat(response.body().asString()).contains("인증되지 않은 사용자의 접근입니다.");
+            });
+        }
+
+        @Test
+        @DisplayName("게시글 작성에 성공한다.")
+        void success() {
+            // given
+            final String title = "title1";
+            final String content = "content1";
+            final BoardWriteRequest request = new BoardWriteRequest(title, content);
+
+            // when
+            final ExtractableResponse<Response> response = writeBoardRequest(request, sessionId);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
+                softly.assertThat(response.header("Location")).contains("/boards/");
+            });
+        }
+
+        @Test
+        @DisplayName("로그인 ID에 해당하는 멤버가 존재하지 않으면 게시글 작성에 실패한다.")
+        void fail_not_found_login_id_member() {
+            // given
+            final String title = "title1";
+            final String content = "content1";
+            final BoardWriteRequest request = new BoardWriteRequest(title, content);
+            memberRepository.deleteAll();
+
+            // when
+            final ExtractableResponse<Response> response = writeBoardRequest(request, sessionId);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(response.statusCode()).isEqualTo(HttpStatus.NOT_FOUND.value());
+                softly.assertThat(response.body().asString()).contains("해당 멤버의 ID가 존재하지 않습니다.");
+            });
+        }
+    }
+
+    @Nested
     @DisplayName("페이지별 게시글 조회 시")
     class ReadByPage {
 
@@ -49,33 +141,10 @@ class BoardApiControllerTest extends AcceptanceTest {
 
         @BeforeEach
         void setUp() {
-
-
             registerRequest(new MemberRegisterRequest(loginId, password, nickname));
-
             final ExtractableResponse<Response> response =
                     loginRequest(new MemberLoginRequest(loginId, password));
             sessionId = response.cookie("JSESSIONID");
-        }
-
-        private ExtractableResponse<Response> registerRequest(final MemberRegisterRequest request) {
-            return RestAssured.given().log().all()
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(request)
-                    .when().log().all()
-                    .post("/members/register")
-                    .then().log().all()
-                    .extract();
-        }
-
-        private ExtractableResponse<Response> loginRequest(final MemberLoginRequest request) {
-            return RestAssured.given().log().all()
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .body(request)
-                    .when().log().all()
-                    .post("/members/login")
-                    .then().log().all()
-                    .extract();
         }
 
         @Test
@@ -153,7 +222,7 @@ class BoardApiControllerTest extends AcceptanceTest {
             }
 
             // when
-            final ExtractableResponse<Response> response = readByPageRequest(pageToRead, pageSize, sessionId);
+            final ExtractableResponse<Response> response = readByPageRequest(pageToRead - 1, pageSize, sessionId);
             final BoardsResponse boardsResponse = response.as(BoardsResponse.class);
             final List<BoardListResponse> boardListResponses = boardsResponse.boardListResponses();
             final BoardPageResponse boardPageResponse = boardsResponse.boardPageResponse();
@@ -169,13 +238,52 @@ class BoardApiControllerTest extends AcceptanceTest {
         }
     }
 
+    private ExtractableResponse<Response> registerRequest(final MemberRegisterRequest request) {
+        return RestAssured.given().log().all()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .body(request)
+                .when().log().all()
+                .post("/api/members/register")
+                .then().log().all()
+                .extract();
+    }
+
+    private ExtractableResponse<Response> loginRequest(final MemberLoginRequest request) {
+        return RestAssured.given().log().all()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .body(request)
+                .when().log().all()
+                .post("/api/members/login")
+                .then().log().all()
+                .extract();
+    }
+
+    private ExtractableResponse<Response> writeBoardRequest(final BoardWriteRequest request, final String sessionId) {
+        return RestAssured.given().log().all()
+                .body(request)
+                .sessionId(sessionId)
+                .when().log().all()
+                .post("/api/boards")
+                .then().log().all()
+                .extract();
+    }
+
+    private ExtractableResponse<Response> writeBoardNotExistSessionRequest(final BoardWriteRequest request) {
+        return RestAssured.given().log().all()
+                .body(request)
+                .when().log().all()
+                .post("/api/boards")
+                .then().log().all()
+                .extract();
+    }
+
     private ExtractableResponse<Response> readByPageRequest(final int page, final int size, final String sessionId) {
         return RestAssured.given().log().all()
                 .param("page", page)
                 .param("size", size)
                 .sessionId(sessionId)
                 .when().log().all()
-                .get("/boards")
+                .get("/api/boards")
                 .then().log().all()
                 .extract();
     }
@@ -185,7 +293,7 @@ class BoardApiControllerTest extends AcceptanceTest {
                 .param("page", page)
                 .param("size", size)
                 .when().log().all()
-                .get("/boards")
+                .get("/api/boards")
                 .then().log().all()
                 .extract();
     }
