@@ -149,7 +149,7 @@ class MemberApiControllerTest extends AcceptanceTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .body(request)
                     .when().log().all()
-                    .post("/members/login")
+                    .post("/api/members/login")
                     .then().log().all()
                     .extract();
         }
@@ -160,7 +160,7 @@ class MemberApiControllerTest extends AcceptanceTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .body(request)
                 .when().log().all()
-                .post("/members/register")
+                .post("/api/members/register")
                 .then().log().all()
                 .extract();
     }
