@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/api/boards")
@@ -24,7 +21,7 @@ public class BoardApiController {
     private final BoardService boardService;
 
     @PostMapping
-    private ResponseEntity<Void> write(@AuthMember final AuthMemberId authMemberId, final BoardWriteRequest request) {
+    private ResponseEntity<Void> write(@AuthMember final AuthMemberId authMemberId, final @RequestBody BoardWriteRequest request) {
         final Long savedBoardId = boardService.writeBoard(authMemberId.id(), request);
         return ResponseEntity.created(URI.create("/boards/" + savedBoardId)).build();
     }
