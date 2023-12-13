@@ -15,4 +15,9 @@ public class BoardWebController {
     public String writeBoardForm() {
         return "write-board-form";
     }
+
+    @GetMapping("/boards/{boardId}")
+    public String boardDetail() {
+        return "board-detail";
+    }
 }
