@@ -1,10 +1,12 @@
 package com.shboard.shboard.board.application;
 
+import com.shboard.shboard.board.application.dto.BoardDetailResponse;
 import com.shboard.shboard.board.application.dto.BoardWriteRequest;
 import com.shboard.shboard.board.application.dto.BoardsResponse;
 import com.shboard.shboard.board.domain.Board;
 import com.shboard.shboard.board.domain.BoardRepository;
 import com.shboard.shboard.board.domain.dto.BoardSearchCondition;
+import com.shboard.shboard.board.exception.BoardException;
 import com.shboard.shboard.member.domain.Member;
 import com.shboard.shboard.member.domain.MemberRepository;
 import com.shboard.shboard.member.exception.MemberException;
@@ -27,6 +29,13 @@ public class BoardService {
         final Page<Board> boardPage = boardRepository.findAllByOrderByCreatedAtDesc(pageable);
 
         return BoardsResponse.of(boardPage, pageable);
+    }
+
+    public BoardDetailResponse readDetail(final Long boardId) {
+        final Board findBoard = boardRepository.findById(boardId)
+                .orElseThrow(BoardException.NotFoundBoardException::new);
+
+        return BoardDetailResponse.of(findBoard);
     }
 
     @Transactional(readOnly = true)

@@ -6,12 +6,10 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import java.util.List;
 
-import com.shboard.shboard.board.application.dto.BoardListResponse;
-import com.shboard.shboard.board.application.dto.BoardPageResponse;
-import com.shboard.shboard.board.application.dto.BoardWriteRequest;
-import com.shboard.shboard.board.application.dto.BoardsResponse;
+import com.shboard.shboard.board.application.dto.*;
 import com.shboard.shboard.board.domain.Board;
 import com.shboard.shboard.board.domain.BoardRepository;
+import com.shboard.shboard.board.exception.BoardException;
 import com.shboard.shboard.member.common.ServiceTest;
 import com.shboard.shboard.member.domain.Member;
 import com.shboard.shboard.member.domain.MemberRepository;
@@ -103,6 +101,54 @@ class BoardServiceTest extends ServiceTest {
                 softly.assertThat(boardPageResponse.currentPageNumber()).isEqualTo(emptyCurrentPageNumber);
                 softly.assertThat(boardPageResponse.totalPageNumber()).isEqualTo(emptyTotalPageNumber);
             });
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 상세 조회 시")
+    class ReadDetail {
+
+        private String title = "title1";
+        private String content = "content1";
+        private String writerNickname = "성하";
+
+        @BeforeEach
+        void setUp() {
+            final Member member = Member.builder()
+                    .loginId("sh111")
+                    .password("password1!")
+                    .nickname(writerNickname)
+                    .build();
+            final Member savedMember = memberRepository.save(member);
+
+            final Board board = new Board(savedMember, title, content);
+            boardRepository.save(board);
+        }
+
+        @Test
+        @DisplayName("상세 조회에 성공한다.")
+        void success() {
+            // when
+            final BoardDetailResponse response = boardService.readDetail(1L);
+
+            // then
+            assertSoftly(softly -> {
+                softly.assertThat(response.title()).isEqualTo(title);
+                softly.assertThat(response.content()).isEqualTo(content);
+                softly.assertThat(response.writerNickname()).isEqualTo(writerNickname);
+            });
+        }
+
+        @Test
+        @DisplayName("없는 게시글 ID로 상세 조회 시 예외가 발생한다.")
+        void throws_not_exist_board_id() {
+            // given
+            final Long notExistBoardId = -1L;
+
+            // when & then
+            assertThatThrownBy(() -> boardService.readDetail(notExistBoardId))
+                    .isInstanceOf(BoardException.NotFoundBoardException.class)
+                    .hasMessage("해당하는 게시글을 찾을 수 없습니다.");
         }
     }
 
