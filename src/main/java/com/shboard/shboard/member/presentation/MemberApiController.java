@@ -2,8 +2,6 @@ package com.shboard.shboard.member.presentation;
 
 import java.net.URI;
 
-import com.shboard.shboard.global.session.application.SessionService;
-import com.shboard.shboard.global.session.application.dto.SessionCreateRequest;
 import com.shboard.shboard.member.application.MemberService;
 import com.shboard.shboard.member.application.dto.MemberLoginRequest;
 import com.shboard.shboard.member.application.dto.MemberRegisterRequest;
@@ -23,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class MemberApiController {
 
     private final MemberService memberService;
-    private final SessionService sessionService;
 
     @PostMapping("/register")
     private ResponseEntity<Void> register(@RequestBody @Valid final MemberRegisterRequest request) {
@@ -38,8 +35,8 @@ public class MemberApiController {
         final String memberLoginId = memberService.login(request);
 
         final HttpSession session = httpRequest.getSession();
-        final SessionCreateRequest sessionCreateRequest = new SessionCreateRequest(session.getId(), memberLoginId);
-        sessionService.create(sessionCreateRequest);
+        session.setAttribute("memberId", memberLoginId);
+        session.setMaxInactiveInterval(3600);
 
         return ResponseEntity.ok().build();
     }
