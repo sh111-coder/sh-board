@@ -18,7 +18,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
 
-    private static final String SESSION_KEY = "SESSION";
+    private static final String SESSION_KEY = "JSESSIONID";
     private static final String REDIS_SESSION_KEY = ":sessions:";
 
     @Value("${spring.session.redis.namespace}")

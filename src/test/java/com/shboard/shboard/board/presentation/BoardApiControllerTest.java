@@ -2,6 +2,7 @@ package com.shboard.shboard.board.presentation;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
+import java.util.Base64;
 import java.util.List;
 
 import com.shboard.shboard.board.application.dto.BoardListResponse;
@@ -81,9 +82,10 @@ class BoardApiControllerTest extends AcceptanceTest {
             final String content = "content1";
             final BoardWriteRequest request = new BoardWriteRequest(title, content);
             final String notExistSessionId = "notExistSessionId";
+            final String encodedNotExistSessionId = new String(Base64.getEncoder().encode(notExistSessionId.getBytes()));
 
             // when
-            final ExtractableResponse<Response> response = writeBoardRequest(request, notExistSessionId);
+            final ExtractableResponse<Response> response = writeBoardRequest(request, encodedNotExistSessionId);
 
             // then
             assertSoftly(softly -> {
@@ -170,9 +172,10 @@ class BoardApiControllerTest extends AcceptanceTest {
             // given
             final int pageToRead = 1;
             final String notExistSessionId = "notExistSessionId";
+            final String encodedNotExistSessionId = new String(Base64.getEncoder().encode(notExistSessionId.getBytes()));
 
             // when
-            final ExtractableResponse<Response> response = readByPageRequest(pageToRead, pageSize, notExistSessionId);
+            final ExtractableResponse<Response> response = readByPageRequest(pageToRead, pageSize, encodedNotExistSessionId);
 
             // then
             assertSoftly(softly -> {
@@ -223,6 +226,7 @@ class BoardApiControllerTest extends AcceptanceTest {
             }
 
             // when
+            System.out.println("sessionId = " + sessionId);
             final ExtractableResponse<Response> response = readByPageRequest(pageToRead - 1, pageSize, sessionId);
             final BoardsResponse boardsResponse = response.as(BoardsResponse.class);
             final List<BoardListResponse> boardListResponses = boardsResponse.boardListResponses();
@@ -296,9 +300,10 @@ class BoardApiControllerTest extends AcceptanceTest {
         void fail_not_found_session() {
             // given
             final String notExistSessionId = "notExistSessionId";
+            final String encodedNotExistSessionId = new String(Base64.getEncoder().encode(notExistSessionId.getBytes()));
 
             // when
-            final ExtractableResponse<Response> response = readDetailRequest(1L, notExistSessionId);
+            final ExtractableResponse<Response> response = readDetailRequest(1L, encodedNotExistSessionId);
 
             // then
             assertSoftly(softly -> {
@@ -314,6 +319,8 @@ class BoardApiControllerTest extends AcceptanceTest {
             final String title = "title1";
             final String content = "content1";
             final BoardWriteRequest request = new BoardWriteRequest(title, content);
+            System.out.println("sessionId = " + sessionId);
+
             writeBoardRequest(request, sessionId);
             final long notExistBoardId = -1L;
 
@@ -352,7 +359,7 @@ class BoardApiControllerTest extends AcceptanceTest {
         return RestAssured.given().log().all()
                 .body(request)
                 .contentType(ContentType.JSON)
-                .sessionId(sessionId)
+                .cookie("JSESSIONID", sessionId)
                 .when().log().all()
                 .post("/api/boards")
                 .then().log().all()
